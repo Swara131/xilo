@@ -45,3 +45,14 @@ body {
 .scan-line {
   animation: scan-line 3.6s ease-in-out infinite;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    padding-bottom: 0;
+  }
+}

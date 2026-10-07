@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ALLERGIES, DIETARY_PREFERENCES, RESTRICTIONS, labelFor } from "@/lib/options";
 import { useFoodSession } from "@/lib/food-context";
 import type { FoodAnalysis, UserProfile } from "@/lib/types";
@@ -75,6 +76,7 @@ function safeError(data: unknown): string {
 }
 
 export function AskAgent() {
+  const pathname = usePathname();
   const { profile, analysis } = useFoodSession();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -189,8 +191,10 @@ export function AskAgent() {
     }
   }
 
+  if (pathname.startsWith("/report/")) return null;
+
   return (
-    <div className="fixed bottom-4 left-1/2 z-40 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2">
+    <div className="no-print fixed bottom-4 left-1/2 z-40 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2">
       {open ? (
         <section className="overflow-hidden rounded-3xl border border-line bg-white shadow-lg">
           <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">

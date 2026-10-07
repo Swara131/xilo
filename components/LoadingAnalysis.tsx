@@ -1,8 +1,7 @@
 const STEPS = [
-  "Reading your food label...",
-  "Identifying ingredients...",
-  "Analyzing nutrition...",
-  "Personalizing your results...",
+  "Analyzing label...",
+  "Checking product information...",
+  "Verifying with live web sources...",
 ];
 
 export function LoadingAnalysis({ step }: { step: number }) {

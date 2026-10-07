@@ -5,7 +5,9 @@ import { ASSESSMENT_TITLES, type FoodAnalysis } from "@/lib/types";
 import { ConcernCard } from "./ConcernCard";
 import { IngredientList } from "./IngredientList";
 import { NutritionSection } from "./NutritionSection";
+import { ShareReport } from "./ShareReport";
 import { VoiceSummary } from "./VoiceSummary";
+import { WebVerification } from "./WebVerification";
 
 const STATUS_STYLES = {
   compatible: "border-emerald-100 bg-emerald-50",
@@ -41,6 +43,8 @@ export function AnalysisResult({
         </h2>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-foreground">{analysis.overallAssessment}</p>
       </section>
+
+      <WebVerification verification={analysis.webVerification} />
 
       {analysis.allergensDetected.length > 0 && (
         <section>
@@ -168,6 +172,7 @@ export function AnalysisResult({
         >
           Start Over
         </button>
+        <ShareReport analysis={analysis} />
       </div>
 
       <p className="text-xs leading-5 text-muted">

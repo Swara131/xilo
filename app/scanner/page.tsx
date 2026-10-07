@@ -6,7 +6,34 @@ import { useRouter } from "next/navigation";
 import { FoodUpload } from "@/components/FoodUpload";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { useFoodSession } from "@/lib/food-context";
-import { isFoodAnalysis } from "@/lib/types";
+import { isFoodAnalysis, isWebVerification, type FoodAnalysis, type WebVerification } from "@/lib/types";
+
+const UNVERIFIED: WebVerification = {
+  verified: false,
+  source: null,
+  webFindings: "",
+  matches: { productName: false, ingredients: "not_found", nutrition: "not_found" },
+  confidence: "low",
+};
+
+async function requestVerification(analysis: FoodAnalysis): Promise<WebVerification> {
+  try {
+    const response = await fetch("/api/verify-food", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productName: analysis.productName,
+        ingredients: analysis.ingredients.slice(0, 12),
+        nutrition: analysis.nutrition,
+      }),
+      signal: AbortSignal.timeout(70000),
+    });
+    const data: unknown = await response.json().catch(() => null);
+    return response.ok && isWebVerification(data) ? data : UNVERIFIED;
+  } catch {
+    return UNVERIFIED;
+  }
+}
 
 export default function ScannerPage() {
   const router = useRouter();
@@ -23,7 +50,7 @@ export default function ScannerPage() {
   useEffect(() => {
     if (!loading) return;
     const timer = window.setInterval(() => {
-      setStep((current) => (current < 3 ? current + 1 : current));
+      setStep((current) => (current < 1 ? current + 1 : current));
     }, 1400);
     return () => window.clearInterval(timer);
   }, [loading]);
@@ -68,7 +95,9 @@ export default function ScannerPage() {
         setLoading(false);
         return;
       }
-      setAnalysis(data);
+      setStep(2);
+      const verification = await requestVerification(data);
+      setAnalysis({ ...data, webVerification: verification });
       router.push("/results");
     } catch {
       setError("We couldn't reach the analysis service. Check your connection and try again.");
@@ -111,6 +140,10 @@ export default function ScannerPage() {
           />
         )}
       </div>
+
+      {!loading && (
+        <p className="mt-3 text-center text-xs font-medium text-muted">Scan Barcode · Coming soon</p>
+      )}
 
       {error && (
         <p className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">

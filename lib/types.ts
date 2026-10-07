@@ -37,6 +37,20 @@ export interface IngredientExplanation {
   concern: string | null;
 }
 
+export type MatchLevel = "match" | "partial" | "no_match" | "not_found";
+
+export interface WebVerification {
+  verified: boolean;
+  source: { title: string; url: string } | null;
+  webFindings: string;
+  matches: {
+    productName: boolean;
+    ingredients: MatchLevel;
+    nutrition: MatchLevel;
+  };
+  confidence: "high" | "medium" | "low";
+}
+
 export interface FoodAnalysis {
   productName: string | null;
   ingredients: string[];
@@ -51,6 +65,7 @@ export interface FoodAnalysis {
   ingredientExplanations: IngredientExplanation[];
   alternativeCriteria: string[];
   labelNotes: string[];
+  webVerification?: WebVerification | null;
 }
 
 export interface AnalysisError {
@@ -117,7 +132,27 @@ export function isFoodAnalysis(value: unknown): value is FoodAnalysis {
     if (item.concern != null && typeof item.concern !== "string") return false;
   }
 
+  if (record.webVerification != null && !isWebVerification(record.webVerification)) return false;
+
   return true;
+}
+
+export function isWebVerification(value: unknown): value is WebVerification {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  if (typeof record.verified !== "boolean") return false;
+  if (typeof record.webFindings !== "string") return false;
+  if (record.confidence !== "high" && record.confidence !== "medium" && record.confidence !== "low") return false;
+  if (record.source != null) {
+    if (!record.source || typeof record.source !== "object") return false;
+    const source = record.source as Record<string, unknown>;
+    if (typeof source.title !== "string" || typeof source.url !== "string") return false;
+  }
+  if (!record.matches || typeof record.matches !== "object") return false;
+  const matches = record.matches as Record<string, unknown>;
+  const level = (item: unknown) =>
+    item === "match" || item === "partial" || item === "no_match" || item === "not_found";
+  return typeof matches.productName === "boolean" && level(matches.ingredients) && level(matches.nutrition);
 }
 
 export const ASSESSMENT_TITLES: Record<AssessmentStatus, string> = {
